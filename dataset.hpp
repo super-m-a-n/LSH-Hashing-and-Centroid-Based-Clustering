@@ -2,6 +2,7 @@
 #ifndef _DATASET_HPP_
 #define _DATASET_HPP_
 #include <iostream>
+#include <string>
 #include "object.hpp"
 
 // class Dataset is simply a collection of point-Objects
@@ -12,8 +13,8 @@ private:
 	int num_of_Objects;
 
 public:
-	// constructor uses a 2dim array input data to initialize the dataset
-	Dataset(int num_of_Points, float ** input_data);
+	// constructor uses the input file to initialize the dataset
+	Dataset(int num_of_Points, std::string & input_file);
 	~Dataset();
 	// print method for debugging
 	void print() const;

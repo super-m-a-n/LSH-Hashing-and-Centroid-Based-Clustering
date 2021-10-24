@@ -11,13 +11,8 @@ int k, L, N, R, d = 0, w, n = 0;
 
 int main(int argc, char const *argv[])
 {
-	// program parameters
+	// variables for program input files
 	std::string input_file, query_file, output_file;
-	
-	// 2-dim array for the input dataset
-	float ** input_dataset = nullptr;
-	// string identifiers for the input point-objects
-	std::string * point_identifier = nullptr;
 
 	// check for input args and initialize them
 	if (!check_init_args(argc, argv, input_file, query_file, k, L, output_file, N, R))
@@ -35,26 +30,21 @@ int main(int argc, char const *argv[])
 		std::cout << std::endl;
 	}
 	
-	// read input file and initialize arguments
-	if (!read_input_file(input_file, n, d, &input_dataset, &point_identifier))
+	// read input file and initialize arguments n and d
+	if (!read_input_file(input_file, n, d))
 	{
 		std::cerr << "\nGiven input file path/name could not be found (invalid file path)\n\n";
 		exit(EXIT_FAILURE);
 	}
 
 	// create a dataset object that will hold all the input objects-points
-	Dataset dataset(n, input_dataset);
+	Dataset dataset(n, input_file);
 
 	//dataset.print();
-	w = 4;
+	
+	w = 4;		// experimental value (testing required)
 
-	// cleanup of temporary structs
-	for (int i = 0; i < n; ++i)
-		delete[] input_dataset[i];
-	delete[] input_dataset;
-	delete[] point_identifier;
-
-	int numBuckets = n/8;		// experimental value
+	int numBuckets = n/1000;		// experimental value (testing required)
 	// create entire structure for lsh algorithm
 	lsh_struct lsh(numBuckets);
 

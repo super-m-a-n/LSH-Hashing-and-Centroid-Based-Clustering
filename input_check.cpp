@@ -79,7 +79,7 @@ bool is_integer(const char * string)
 	return true;
 }
 
-bool read_input_file(std::string & input_file, int & n, int & d, float *** dataset, std::string ** point_identifier)
+bool read_input_file(std::string & input_file, int & n, int & d)
 {
 	// we use C code to read file because its faster than C++ and given input files are massive
 	char * line = NULL;
@@ -119,45 +119,9 @@ bool read_input_file(std::string & input_file, int & n, int & d, float *** datas
 	    free(line);
 	}
 
-	// following block of code creates and initializes the 2-dim array dataset
-	// first rewind to the start of the file again
+	// rewind to the start of the file
 	rewind(file_ptr);
-	line = NULL;
-	length = 0;
-	int point_index = -1;;
-
-	*dataset = new float*[n];
-	for (int i = 0; i < n; ++i)
-		(*dataset)[i] = new float[d];
-	*point_identifier = new std::string[n];
-
-	while(getline(&line, &length, file_ptr) != -1)
-	{
-		point_index++;
-	    line[strlen(line)-1] = '\0';		// remove newline character from line read from file
-	    if (line[strlen(line)-1] == '\r')	// remove potential \r character from line read from file
-	    	line[strlen(line)-1] = '\0';
-
-	    char *str = strtok(line, " ");
-	    int j = 0;
-	    
-	    while(str != NULL)
-	    {
-	    	switch (j)
-	        {
-	         	case 0:  (*point_identifier)[point_index] = str; break;		// save name identifier of point as string
-	         	default: (*dataset)[point_index][j-1] = atof(str);			// save coordinates of point
-	         	         	
-	        }
-	        
-	        j++;
-	        str = strtok(NULL, " ");
-	    }
-	     
-	}
-
-	free(line);
-
+	// close file
 	fclose(file_ptr);
 
 	return true;
