@@ -2,6 +2,7 @@
 #include "object.hpp"
 #include "params.hpp"
 #include <iostream>
+#include <string>
 #include <cstdint>
 #include <random>
 #include <cmath>
@@ -27,7 +28,7 @@ Object::Object() : id(0)
 		vector[i] = vector[i] / sqrt(norm_squared);			// divide each coordinate by norm, to normalize point-object
 }
 
-Object::Object(float input_vector[]) : id(0)
+Object::Object(float input_vector[], std::string & object_name) : identifier(object_name), id(0)
 {
 	vector = new float[d];
 
@@ -57,6 +58,8 @@ float Object::inner_prod(const Object& p) const
 
 void Object::print() const
 {
+	std::cout << "Object " << this->identifier << "--> (";
 	for (int i = 0; i < d; ++i)
 		std::cout << this->vector[i] << ",";
+	std::cout << ")\n";
 }
