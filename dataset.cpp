@@ -85,3 +85,13 @@ void Dataset::print() const
 		std::cout << std::endl << std::endl;
 	}
 }
+
+int Dataset::get_num_of_Objects() const
+{
+	return this->num_of_Objects;
+}
+
+Object& Dataset::get_ith_object(int i) const
+{
+	return *(this->dataset[i]);
+}

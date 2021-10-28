@@ -27,6 +27,10 @@ public:
 	int get_capacity() const;
 	// inserts given point-object into hash table
 	void insert(Object& p);
+	// returns bucket index in which given object p hashes in
+	int get_bucket_index(Object& p);
+	// returns bucket-list indicated by bucket index
+	const std::list<Object*> & get_ith_bucket(int bucket_index) const;
 };
 
 #endif

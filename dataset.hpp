@@ -18,6 +18,10 @@ public:
 	~Dataset();
 	// print method for debugging
 	void print() const;
+	// returns number of objects of dataset
+	int get_num_of_Objects() const;
+	// returns i-th object of dataset;
+	Object& get_ith_object(int i) const;
 	
 };
 

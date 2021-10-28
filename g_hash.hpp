@@ -2,6 +2,7 @@
 #ifndef _G_HASH_HPP_
 #define _G_HASH_HPP_
 #include <iostream>
+#include <cstdint>
 #include "object.hpp"
 #include "h_hash.hpp"
 #include "params.hpp"
@@ -21,5 +22,8 @@ public:
 	// overload of () operator, so that each g_hash object can be used as a "function"
 	int operator()(Object& p, int table_size) const;	
 };
+
+
+int64_t mod(int64_t x, int64_t y);
 
 #endif
