@@ -24,8 +24,14 @@ public:
 	~Object();
 	// id setter
 	void set_id(uint32_t object_id);
+	// id getter
+	uint32_t get_id() const;
+	// name identifier getter
+	const std::string & get_name() const; 
 	// calculates the inner-product of calling object with given object p (both d-dimensional)
 	float inner_prod(const Object& p) const;
+	// calculates the euclidean distance between caller object and argument object
+	double euclidean_distance(const Object& p) const;
 	// print method for debugging
 	void print() const;
 };

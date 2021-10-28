@@ -46,6 +46,16 @@ void Object::set_id(uint32_t object_id)
 	this->id = object_id;
 }
 
+uint32_t Object::get_id() const
+{
+	return this->id;
+}
+
+const std::string & Object::get_name() const
+{
+	return this->identifier;
+}
+
 float Object::inner_prod(const Object& p) const
 {
 	float inner_prod = 0.0;
@@ -54,6 +64,16 @@ float Object::inner_prod(const Object& p) const
 		inner_prod += this->vector[i] * p.vector[i];
 
 	return inner_prod;
+}
+
+double Object::euclidean_distance(const Object& p) const
+{
+	double dist_squared = 0.0;
+
+	for (int i = 0; i < d; ++i)
+		dist_squared += (double) (this->vector[i] - p.vector[i]) * (double) (this->vector[i] - p.vector[i]);
+
+	return sqrt(dist_squared);
 }
 
 void Object::print() const

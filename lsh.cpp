@@ -19,7 +19,7 @@ int main(int argc, char const *argv[])
 	{
 		std::cerr << "\nWrong command line input. Use : ./lsh -i <input_file> -q <query_file> -k <int> -L <int> -o <output_file> -N <int> -R <radius>\n";
 		std::cerr << "Each -x <value> pair is optional\n\n";
-		exit(EXIT_FAILURE);
+		return EXIT_FAILURE;
 	}
 	
 	//ask for input path, if not given through command line
@@ -34,21 +34,72 @@ int main(int argc, char const *argv[])
 	if (!read_input_file(input_file, n, d))
 	{
 		std::cerr << "\nGiven input file path/name could not be found (invalid file path)\n\n";
-		exit(EXIT_FAILURE);
+		return EXIT_FAILURE;
 	}
 
 	// create a dataset object that will hold all the input objects-points
 	Dataset dataset(n, input_file);
 
-	//dataset.print();
 	
-	w = 4;		// experimental value (testing required)
+	w = 747;		// experimental value (testing required)
 
-	int numBuckets = n/1000;		// experimental value (testing required)
+	int numBuckets = 33;		// experimental value (testing required)
 	// create entire structure for lsh algorithm
 	lsh_struct lsh(numBuckets);
+	// import dataset into lsh struct
+	lsh.import_data(dataset);
 
+	bool exit_val = false;
+
+	while (exit_val == false)
+	{
+		if (query_file.empty())
+		{
+			std::cout << "\nPlease give a query file path ->  ";
+			std::getline(std::cin, query_file);
+			std::cout << std::endl;
+		}
+
+		int nq = 0, dq = 0;
+		// read query file and initialize arguments nq and dq
+		if (!read_input_file(query_file, nq, dq))
+		{
+			std::cerr << "\nGiven query file path/name could not be found (invalid file path)\n\n";
+			return EXIT_FAILURE;
+		}
+
+		// create a dataset object that will hold all the query objects-points
+		Dataset query_dataset(nq, query_file);
+
+		if (output_file.empty())
+		{
+			std::cout << "\nPlease give an output file path ->  ";
+			std::getline(std::cin, output_file);
+			std::cout << std::endl;
+		}
+
+		// execute kNN, range search nearest neighbors algorithms using euclidean metric
+		if (!lsh.execute(dataset, query_dataset, output_file, N, R, euclidean))
+		{
+			std::cerr << "\nError occured while opening given output file\n\n";
+			return EXIT_FAILURE;
+		}
+
+		std::string answer;
+		while (answer != "t" && answer != "r")	// user must type "t" to terminate or "r" to run again
+		{
+			std::cout << "\nTerminate (t) or run again for different query file (r) ? (t/r) : ";
+			std::getline(std::cin, answer);
+		}
+
+		if (answer == "t")
+			exit_val = true;
+		else if (answer == "r")
+		{
+			query_file = "";
+			output_file = "";
+		}
+	}
 	
 	return EXIT_SUCCESS;
-
 }

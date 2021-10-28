@@ -32,3 +32,13 @@ void hash_table::insert(Object& p)
 	int index = g(p, this->capacity);	// g hash function is used to get index in hash-table
 	this->table[index].push_back(&p);	// pointer to given point-Object is inserted at index
 }
+
+int hash_table::get_bucket_index(Object& p)
+{
+	return g(p, this->capacity);
+}
+
+const std::list<Object*> & hash_table::get_ith_bucket(int bucket_index) const
+{
+	return this->table[bucket_index];
+}
