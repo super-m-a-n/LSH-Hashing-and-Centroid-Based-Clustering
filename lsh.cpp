@@ -1,6 +1,7 @@
 //file:lsh.cpp//
 #include <iostream>
 #include <string>
+#include <cmath>
 #include "input_check.hpp"
 #include "dataset.hpp"
 #include "params.hpp"
@@ -41,9 +42,9 @@ int main(int argc, char const *argv[])
 	Dataset dataset(n, input_file);
 
 	
-	w = 747;		// experimental value (testing required)
+	w = 40;		// experimental value (testing required)
 
-	int numBuckets = 33;		// experimental value (testing required)
+	int numBuckets = floor(n/16);		// experimental value (testing required)
 	// create entire structure for lsh algorithm
 	lsh_struct lsh(numBuckets);
 	// import dataset into lsh struct

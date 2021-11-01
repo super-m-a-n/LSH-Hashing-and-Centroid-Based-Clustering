@@ -7,6 +7,7 @@
 #include <queue>
 #include <utility>
 #include <vector>
+#include <cstdint>
 #include "params.hpp"
 #include "lsh_struct.hpp"
 #include "hash.hpp"
@@ -33,7 +34,7 @@ lsh_struct::~lsh_struct()
 	delete[] lsh_hash_struct;
 }
 
-void lsh_struct::import_data(Dataset & dataset)
+void lsh_struct::import_data(const Dataset & dataset)
 {
 	int num_of_Objects = dataset.get_num_of_Objects();
 
@@ -47,7 +48,7 @@ void lsh_struct::import_data(Dataset & dataset)
 
 }
 
-bool lsh_struct::execute(const Dataset & dataset, Dataset & query_dataset, const std::string & output_file, const int & N, const int & R, double (*metric)(const Object &, const Object &))
+bool lsh_struct::execute(const Dataset & dataset, const Dataset & query_dataset, const std::string & output_file, const int & N, const int & R, double (*metric)(const Object &, const Object &))
 {
 
 	std::ofstream file (output_file, std::ios::out);		// open output file for output operations
@@ -56,112 +57,170 @@ bool lsh_struct::execute(const Dataset & dataset, Dataset & query_dataset, const
 	    return false;				// error occured
 
 	int num_of_Objects = query_dataset.get_num_of_Objects();
+	
+	//long unsigned int lsh = 0;
+	//long unsigned int bf = 0;
 
 	for (int i = 0; i < num_of_Objects; i++)		// run for each of the query Objects
 	{
 		file << "Query: query Object " << (query_dataset.get_ith_object(i)).get_name() << "\n\n";
-		// run approximate and exact nearest neighbors and write results into file
-		this->nearest_neighbors(dataset, query_dataset.get_ith_object(i), file, N, metric);
+
+		//start timer for lsh
+		auto t_lsh_start = std::chrono::high_resolution_clock::now();
+		
+		// run approximate nearest neighbors and return the neighbors and the distances found
+		std::vector <std::pair <double, const Object*> > appr_nearest = this->appr_nearest_neighbors(dataset, query_dataset.get_ith_object(i), N, metric);
+		
+		// end timer for lsh
+		auto t_lsh_end = std::chrono::high_resolution_clock::now();
+
+		// start timer for brute force
+		auto t_true_start = std::chrono::high_resolution_clock::now();
+
+		// run exact nearest neighbors and return the neighbors and the distances found
+		std::vector <std::pair <double, const Object*> > exact_nearest = this->exact_nearest_neighbors(dataset, query_dataset.get_ith_object(i), N, metric);
+		
+		// end timer for brute force
+		auto t_true_end = std::chrono::high_resolution_clock::now();
+
+		for (int index = 0; index < N; ++index)	
+		{
+			if ((int) appr_nearest.size() >= index + 1)	// neighbors found may be less than N
+			{
+				const Object * object = std::get<1>(appr_nearest[index]);			// get object-neighbor found
+				double dist = std::get<0>(appr_nearest[index]);						// get distance from query object
+				//lsh += dist;
+
+				file << "Nearest neighbor-" << index + 1 << " : Point-Object " << object->get_name() << '\n';	//write to file
+				file << "distanceLSH : " << dist << '\n';
+			}
+
+			if ((int) exact_nearest.size() >= index + 1)	// neighbors found may be less than N
+			{
+				double dist = std::get<0>(exact_nearest[index]);		// get distance from query object
+				//bf += dist;
+				file << "distanceTrue : " << dist << "\n\n";			// write to file
+			}
+		}
+
+		// get execution for LSH in milliseconds 
+	    std::chrono::duration <double, std::milli> tLSH = t_lsh_end - t_lsh_start;
+	    // get execution for brute force in milliseconds
+	    std::chrono::duration <double, std::milli> tTrue = t_true_end - t_true_start;
+	    // write times of execution in file
+	    file << "tLSH : " << tLSH.count() << "ms\n";
+	    file << "tTrue : " << tTrue.count() << "ms\n\n";
+
 		// run approximate range search and write results into file
 		this->range_search(query_dataset.get_ith_object(i), file, R, metric);
 	}
-
+	//std::cout << (double) bf / (double) lsh << std::endl;
 	return true;
 }
 
-void lsh_struct::nearest_neighbors(const Dataset & dataset, Object & query_object, std::ofstream & file, const int & N, double (*metric)(const Object &, const Object &))
+std::vector <std::pair <double, const Object*> > lsh_struct::appr_nearest_neighbors(const Dataset & dataset, const Object & query_object, const int & N, double (*metric)(const Object &, const Object &))
 {
-
 	// run approximate kNN
 
 	// initialize an empty set of strings-object names, that will serve as a visited set, so that we check each object at most once
 	std::set <std::string> visited_set;
-	// initialize a min heap priority queue, that will store the Object identifier string name and the distance of Object from query object
-	std::priority_queue <std::pair <double, std::string>, std::vector<std::pair <double, std::string> >, std::greater<std::pair <double, std::string> > > min_heap;
 
-	//start timer
-	auto t_lsh_start = std::chrono::high_resolution_clock::now();
+	// initialize a max heap priority queue, that will store the distance of Object from query object and a pointer to the Object itself
+	std::priority_queue <std::pair <double, const Object*> > max_heap;
 
 	for (int i = 0; i < L; ++i)
 	{
-		// get bucket index in i-th hash table, for given query object
-		int bucket = (this->lsh_hash_struct[i])->get_bucket_index(query_object);
+		uint32_t query_object_id = 0;
+
+		// get bucket index in i-th hash table, for given query object , and query object locality ID
+		int bucket = (this->lsh_hash_struct[i])->get_bucket_index(query_object, query_object_id);
 
 		// iterate the bucket of hash table that the bucket index indicates
-		for (auto const& object : (this->lsh_hash_struct[i])->get_ith_bucket(bucket))
+		for (auto const& object_info : (this->lsh_hash_struct[i])->get_ith_bucket(bucket))
 		{
+			const Object * object = std::get<0>(object_info);			// get object
+			uint32_t object_id = std::get<1>(object_info);		// get object's locality ID
+
 			// if given object has not been visited yet and has same locality ID with query object
-			if (visited_set.count(object->get_name()) == 0 && object->get_id() == query_object.get_id())
+			if (visited_set.count(object->get_name()) == 0 && object_id == query_object_id)
 			{
 				// add object's name (unique identifier) into visited set
 				visited_set.insert(object->get_name());
+				// calculate object's distance from query object
 				double dist = (*metric)(query_object, *object);
-				min_heap.push(std::make_pair(dist, object->get_name()));
+
+				if ((int) max_heap.size() < N)	// if we haven't found N neighbors yet
+					max_heap.push(std::make_pair(dist, object));	// simply push the new object-neighbor found
+				else
+				{
+					// N neighbors have already been found, so compare with largest distance
+					double largest_dist = std::get<0>(max_heap.top());
+
+					if (dist < largest_dist)	// if new object is closer
+					{
+						max_heap.pop();									// pop the Object with the largest distance
+						max_heap.push(std::make_pair(dist, object));	// and insert the new object
+					}
+				}
 			}
 		}
 	}
 
-	// if Objects with same locality ID, are fewer than N
-	//if (min_heap.size() < N)
-	//{
-		// TODO : run again perhaps
-	//}
+	// initialize a vector with how many approximate nearest neighbors were found
+	std::vector <std::pair <double, const Object*> > nearest(max_heap.size());
 
-	// end timer
-	auto t_lsh_end = std::chrono::high_resolution_clock::now();
+	for (int i = nearest.size() - 1; i >= 0; --i)	// for each nearest neighbor found
+	{
+		nearest[i] = max_heap.top();	// save nearest neighbor
+		max_heap.pop();
+	}
+	
+	return nearest;
+}
 
+std::vector <std::pair <double, const Object*> > lsh_struct::exact_nearest_neighbors(const Dataset & dataset, const Object & query_object, const int & N, double (*metric)(const Object &, const Object &))
+{
 	// run brute force exact kNN
 	int num_of_Objects = dataset.get_num_of_Objects();
 
-	// initialize a min heap priority queue, that will store the distances of Objects from query object
-	std::priority_queue <double, std::vector<double>, std::greater<double> > brute_force_min_heap;
-
-	// start timer
-	auto t_true_start = std::chrono::high_resolution_clock::now();
+	// initialize a max heap priority queue, that will store the distance of Object from query object and a pointer to the Object itself
+	std::priority_queue <std::pair <double, const Object*> > max_heap;
 
 	// check each of the dataset objects by brute force
 	for (int i = 0; i < num_of_Objects; ++i)
 	{
 		// find its distance from query object
 		double dist = (*metric)(query_object, dataset.get_ith_object(i));
-		// and insert it into min heap (memory inefficient but faster than keeping an array sorted through iterations, further testing required)
-		brute_force_min_heap.push(dist);
+
+		if ((int) max_heap.size() < N)	// if we haven't found N neighbors yet
+			max_heap.push(std::make_pair(dist, & dataset.get_ith_object(i)));
+		else
+		{
+			// N neighbors have already been found, so compare with largest distance
+			double largest_dist = std::get<0>(max_heap.top());
+
+			if (dist < largest_dist)	// if new object is closer
+			{
+				max_heap.pop();									// pop the Object with the largest distance
+				max_heap.push(std::make_pair(dist, & dataset.get_ith_object(i)));	// and insert the new object
+			}
+		}
 	}
 
-	// end timer
-	auto t_true_end = std::chrono::high_resolution_clock::now();
+	// initialize a vector with how many exact nearest neighbors were found
+	std::vector <std::pair <double, const Object*> > nearest(max_heap.size());
 
-	for (int i = 0; i < N; ++i)
+	for (int i = nearest.size() - 1; i >= 0; --i)	// for each nearest neighbor found
 	{
-		if (!min_heap.empty())		// neighbors found maybe less than N
-		{
-			std::string object_name = std::get<1>(min_heap.top());
-			double dist = std::get<0>(min_heap.top());
-			min_heap.pop();
-
-			file << "Nearest neighbor-" << i+1 << " : Point-Object " << object_name << '\n';
-			file << "distanceLSH : " << dist << '\n';
-		}
-
-		if (!brute_force_min_heap.empty())
-		{
-			double dist = brute_force_min_heap.top();
-			brute_force_min_heap.pop();
-			file << "distanceTrue : " << dist << "\n\n";
-		}
+		nearest[i] = max_heap.top();	// save nearest neighbor
+		max_heap.pop();
 	}
 
-	// get execution for LSH in milliseconds 
-    std::chrono::duration <double, std::milli> tLSH = t_lsh_end - t_lsh_start;
-    // get execution for brute force in milliseconds
-    std::chrono::duration <double, std::milli> tTrue = t_true_end - t_true_start;
-    // write times of execution in file
-    file << "tLSH : " << tLSH.count() << "ms\n";
-    file << "tTrue : " << tTrue.count() << "ms\n\n";
+	return nearest;
 }
 
 
-void lsh_struct::range_search(Object & query_object, std::ofstream & file, const int & R, double (*metric)(const Object &, const Object &))
+void lsh_struct::range_search(const Object & query_object, std::ofstream & file, const int & R, double (*metric)(const Object &, const Object &))
 {
 	file << "R-near neighbors: (R = " << R << ")" << '\n';
 
@@ -170,19 +229,27 @@ void lsh_struct::range_search(Object & query_object, std::ofstream & file, const
 
 	for (int i = 0; i < L; ++i)
 	{
+		uint32_t query_object_id = 0;
+
 		// get bucket index in i-th hash table, for given query object
-		int bucket = (this->lsh_hash_struct[i])->get_bucket_index(query_object);
+		int bucket = (this->lsh_hash_struct[i])->get_bucket_index(query_object, query_object_id);
 
 		// iterate the bucket of hash table that the bucket index indicates
-		for (auto const& object : (this->lsh_hash_struct[i])->get_ith_bucket(bucket))
+		for (auto const& object_info : (this->lsh_hash_struct[i])->get_ith_bucket(bucket))
 		{
-			// if current object has not been visited yet, and is within range
-			if (visited_set.count(object->get_name()) == 0 && (*metric)(query_object, *object) < R )
+			const Object * object = std::get<0>(object_info);			// get object
+
+			// if current object has not been visited yet
+			if (visited_set.count(object->get_name()) == 0)
 			{
 				// add object's name (unique identifier) into visited set
 				visited_set.insert(object->get_name());
-				// object is within range, so write it into file
-				file << "Point-Object " << object->get_name() << '\n';
+				//if it is also within range
+				if ( (*metric)(query_object, *object) < R )
+				{
+					// object is within range, so write it into file
+					file << "Point-Object " << object->get_name() << '\n';
+				}
 			}
 		}
 	}
