@@ -3,11 +3,10 @@
 #include "params.hpp"
 #include <iostream>
 #include <string>
-#include <cstdint>
 #include <random>
 #include <cmath>
 
-Object::Object() : id(0)
+Object::Object()
 {
 	vector = new float[d];									// d-dimensional point object
 
@@ -28,7 +27,7 @@ Object::Object() : id(0)
 		vector[i] = vector[i] / sqrt(norm_squared);			// divide each coordinate by norm, to normalize point-object
 }
 
-Object::Object(float input_vector[], std::string & object_name) : identifier(object_name), id(0)
+Object::Object(float input_vector[], std::string & object_name) : identifier(object_name)
 {
 	vector = new float[d];
 
@@ -39,16 +38,6 @@ Object::Object(float input_vector[], std::string & object_name) : identifier(obj
 Object::~Object()
 {
 	delete[] vector;
-}
-
-void Object::set_id(uint32_t object_id)
-{
-	this->id = object_id;
-}
-
-uint32_t Object::get_id() const
-{
-	return this->id;
 }
 
 const std::string & Object::get_name() const

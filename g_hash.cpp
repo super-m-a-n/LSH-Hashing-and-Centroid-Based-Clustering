@@ -28,9 +28,8 @@ g_hash::g_hash()
 
 }
 
-int g_hash::operator()(Object& p, int table_size) const
+int g_hash::operator()(const Object& p, int table_size, uint32_t & object_id) const
 {
-	uint32_t object_id = 0;
 	uint32_t M = 4294967291;		// large prime M = 2^32 - 5, <= 32 bits
 
 	// following block of code does a linear combination of h_i with r_i avoiding overflow
@@ -49,7 +48,6 @@ int g_hash::operator()(Object& p, int table_size) const
 	}
 
 	object_id = (uint32_t) right; // right is always a number mod M, so positive and at most as big as M (32 bits), so this cast is safe
-	p.set_id(object_id);
 
 	return object_id % table_size;
 }
