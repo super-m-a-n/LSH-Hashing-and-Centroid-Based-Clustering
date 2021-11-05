@@ -25,16 +25,16 @@ private:
     uint8_t get_0_or_1(int i, Object& object);
 
     void vertex_visiting_first_stage(search_type Type, const int R, int curr_vertex, int ham_dist, int M_rem, int probes_rem, uint curr_bit,
-	std::priority_queue <std::pair <double, std::string>, std::vector<std::pair <double, std::string> >, std::greater<std::pair <double, std::string> > > & min_heap,
-								Object & query_object, std::ofstream & file,double (*metric)(const Object &, const Object &));
+	std::priority_queue <std::pair <double, const Object*> >& max_heap,
+								Object & query_object, std::ofstream & file,double (*metric)(const Object &, const Object &), int N);
 
     void vertex_visiting_second_stage(search_type Type, const int R, int curr_vertex, int& M_rem, int& probes_rem, uint curr_bit, int ham_rem,
-	std::priority_queue <std::pair <double, std::string>, std::vector<std::pair <double, std::string> >, std::greater<std::pair <double, std::string> > > & min_heap,
-								Object & query_object, std::ofstream & file, double (*metric)(const Object &, const Object &));
+	std::priority_queue <std::pair <double, const Object*> >& max_heap,
+								Object & query_object, std::ofstream & file, double (*metric)(const Object &, const Object &), int& N);
 
     void vertex_visiting_third_stage(search_type Type, const int R, int curr_vertex, int& M_rem,
-	std::priority_queue <std::pair <double, std::string>, std::vector<std::pair <double, std::string> >, std::greater<std::pair <double, std::string> > > & min_heap,
-								Object & query_object, std::ofstream & file, double (*metric)(const Object &, const Object &));
+	std::priority_queue <std::pair <double, const Object*> >& max_heap,
+								Object & query_object, std::ofstream & file, double (*metric)(const Object &, const Object &), int& N);
 
 public:
 
@@ -49,13 +49,18 @@ public:
 	// and outputs results and execution times in output file
 	bool execute(const Dataset & dataset, Dataset & query_dataset, const std::string & output_file, const int & N, const int & R, double (*metric)(const Object &, const Object &));
 	// runs approximate and exact nearest neighbors using given metric function and write results into file
-	void nearest_neighbors(const Dataset & dataset, Object & query_object, std::ofstream & file, const int & N, double (*metric)(const Object &, const Object &));
+	std::vector <std::pair <double, const Object*> > appr_nearest_neighbors(const Dataset & dataset, Object & query_object, std::ofstream & file, const int & N, double (*metric)(const Object &, const Object &));
 	// run approximate range search using given metric function and write results into file
 	void range_search(Object & query_object, std::ofstream & file, const int & R, double (*metric)(const Object &, const Object &));
+
+    std::vector <std::pair <double, const Object*> > exact_nearest_neighbors(const Dataset & dataset, const Object & query_object, const int & N, double (*metric)(const Object &, const Object &));
 
     //void print() const;
     ~hypercube();
 };
+
+//Make sure the priority queue only stores at most N from the currently found objects since more than N are not needed
+void push_at_most_N(Object* obj_p, int N, double dist, std::priority_queue <std::pair <double, const Object*> >& max_heap);
 
 double euclidean(const Object & p, const Object & q);
 // can easily expand to other metric function here

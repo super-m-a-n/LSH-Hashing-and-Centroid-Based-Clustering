@@ -54,7 +54,7 @@ bool check_init_args(int argc, const char ** argv, std::string & input_file, std
 		{
 			if (!is_integer(argv[i]) || !atoi(argv[i]))
 				return false;
-			N = atoi(argv[i]);
+			M = atoi(argv[i]);
 		}
 		else if (!strcmp(argv[i-1], "-N"))
 		{
@@ -79,8 +79,8 @@ bool check_init_args(int argc, const char ** argv, std::string & input_file, std
 
 bool is_integer(const char * string)
 {
-	int k = strlen(string);
-	for (unsigned int i = 0; i < k ; i++)
+	uint k = strlen(string);
+	for (uint i = 0; i < k ; i++)
 	{
 		if (string[i] < '0' || string[i] > '9')
 			return false;
