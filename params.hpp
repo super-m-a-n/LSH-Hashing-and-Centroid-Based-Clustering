@@ -10,5 +10,6 @@ extern int w;   // the window parameter for the h hash functions
 extern int d1;  // The dimension for the hypercube
 extern int M;
 extern int probes;
+extern int K;	// the number of clusters-centroids
 
 #endif

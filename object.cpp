@@ -2,6 +2,7 @@
 #include "object.hpp"
 #include "params.hpp"
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <random>
 #include <cmath>
@@ -28,6 +29,14 @@ Object::Object()
 }
 
 Object::Object(float input_vector[], std::string & object_name) : identifier(object_name)
+{
+	vector = new float[d];
+
+	for (int i = 0; i < d; ++i)
+		vector[i] = input_vector[i];
+}
+
+Object::Object(float input_vector[])
 {
 	vector = new float[d];
 
@@ -65,10 +74,38 @@ double Object::euclidean_distance(const Object& p) const
 	return sqrt(dist_squared);
 }
 
+void Object::set(const Object& p)
+{
+	// copy identifier
+	this->identifier = p.identifier;
+	// copy coordinates
+	for (int i = 0; i < d; ++i)
+		this->vector[i] = p.vector[i];
+}
+
+
+void Object::set_ith(int i, float value)
+{
+	this->vector[i] = value;
+}
+
+float Object::get_ith(int i) const
+{
+	return this->vector[i];
+}
+
 void Object::print() const
 {
 	std::cout << "Object " << this->identifier << "--> (";
 	for (int i = 0; i < d; ++i)
 		std::cout << this->vector[i] << ",";
 	std::cout << ")\n";
+}
+
+void Object::print(std::ofstream & file) const
+{
+	file << "( ";
+	for (int i = 0; i < d-1; ++i)
+		file << this->vector[i] << ", ";
+	file << this->vector[d-1] << " )";
 }
