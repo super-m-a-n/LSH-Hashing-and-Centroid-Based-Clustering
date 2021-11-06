@@ -2,6 +2,7 @@
 #ifndef _OBJECT_HPP_
 #define _OBJECT_HPP_
 #include <iostream>
+#include <fstream>
 #include <string>
 #include "params.hpp"
 
@@ -19,6 +20,8 @@ public:
 	Object();
 	// constructor through another d-dimensional input array
 	Object(float input_vector[], std::string & object_name);
+	// constructor through another d-dimensional input array with empty object name
+	Object(float input_vector[]);
 	~Object();
 	// name identifier getter
 	const std::string & get_name() const; 
@@ -26,8 +29,16 @@ public:
 	float inner_prod(const Object& p) const;
 	// calculates the euclidean distance between caller object and argument object
 	double euclidean_distance(const Object& p) const;
+	// sets caller object's info to given arg object's info (does a copy basically)
+	void set(const Object& p);
+	// sets ith coordinate of Object to value
+	void set_ith(int i, float value);
+	// gets ith coordinate of Object
+	float get_ith(int i) const;
 	// print method for debugging
 	void print() const;
+	// write object to file
+	void print(std::ofstream & file) const;
 };
 
 #endif
