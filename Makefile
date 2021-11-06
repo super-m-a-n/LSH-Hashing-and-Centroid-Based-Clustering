@@ -1,6 +1,7 @@
 CXX=g++
 CXXFLAGS=-Wall -std=c++11
 
+
 all: lsh cube cluster
 
 target1: lsh
@@ -8,7 +9,6 @@ target1: lsh
 target2: cube
 
 target3: cluster
-
 
 lsh: lsh.o input_check.o dataset.o object.o h_hash.o g_hash.o hash.o lsh_struct.o
 	$(CXX) $(CXXFLAGS) -o lsh lsh.o input_check.o dataset.o object.o h_hash.o g_hash.o hash.o lsh_struct.o
@@ -68,3 +68,5 @@ cluster.o: cluster.cpp
 
 clean:
 	rm -f *.o lsh cube cluster output_id
+
+
