@@ -124,11 +124,9 @@ void Cluster_info::K_means_init(const Dataset & dataset, double (*metric)(const 
 	centroids[0]->set(dataset.get_ith_object(initial_centroid));
 
 	// array D will hold min distance to some centroid for every Object-point
-	//std::array <float, num_of_Objects> D;
-	float D[num_of_Objects];
+	std::vector <float> D(num_of_Objects);
 	// array holding for each object, each nearest centroid thus far (if object is centroid, nearest centroid is itself) 
-	//std::array <int, num_of_Objects> nearest_centroid;
-	int nearest_centroid[num_of_Objects];
+	std::vector <int> nearest_centroid(num_of_Objects);
 	// nearest centroid for the initial centroid is itself
 	nearest_centroid[initial_centroid] = initial_centroid;
 	D[initial_centroid] = 0;
@@ -137,11 +135,9 @@ void Cluster_info::K_means_init(const Dataset & dataset, double (*metric)(const 
 	while (t < K)
 	{
 		// array that will hold the partial sums, for each non centroid Object
-		//std::array <float, num_of_Objects - t + 1 > P;
-		float P[num_of_Objects - t + 1];
+		std::vector <float> P(num_of_Objects - t + 1);
 		// array that will hold the Object index of each partial sum in P
-		//std::array <int, num_of_Objects - t + 1 > object_index;
-		int object_index[num_of_Objects - t + 1];
+		std::vector <int> object_index(num_of_Objects - t + 1);
 
 		int index = 1;
 		float max_Di = 0;
@@ -316,7 +312,7 @@ bool Cluster_info::update(double (*metric)(const Object &, const Object &))
 	
 }*/
 
-int binary_search(float P[], float x, int lower_index, int upper_index)
+int binary_search(const std::vector <float> & P, float x, int lower_index, int upper_index)
 {
 	if (upper_index >= lower_index)
 	{
