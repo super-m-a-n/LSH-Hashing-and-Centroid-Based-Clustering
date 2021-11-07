@@ -44,6 +44,6 @@ public:
 	
 };
 
-int binary_search(float P[], float x, int lower_index, int upper_index);
+int binary_search(const std::vector <float> & P, float x, int lower_index, int upper_index);
 double euclidean(const Object & p, const Object & q);
 #endif
