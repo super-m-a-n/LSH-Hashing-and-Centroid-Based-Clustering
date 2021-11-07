@@ -4,7 +4,7 @@
 #include <random>
 #include <time.h>
 #include <cstdlib>
-#include "input_check2.hpp"
+#include "input_check.hpp"
 #include "dataset.hpp"
 #include "params.hpp"
 #include "hypercube_class.hpp"
@@ -24,7 +24,7 @@ int main(int argc, char const *argv[])
 	srand(time(NULL));
 
 	// check for input args and initialize them
-	if (!check_init_args(argc, argv, input_file, query_file, k, M, probes,output_file, N, R))
+	if (!check_init_args(Hypercube, argc, argv, input_file, query_file, k, M, probes, L, output_file, N, R))
 	{
 		std::cerr << "\nWrong command line input. Use : ./cube –i <input file> –q <query file> –k <int> -M <int> -probes <int>\
                         -ο <output file> -Ν <number of nearest> -R <radius>\n";
@@ -53,8 +53,11 @@ int main(int argc, char const *argv[])
 	
 	w = 747;		// experimental value (testing required)
 
-	//int numBuckets = 33;		// experimental value (testing required)
-    d1 = get_lg(n) - 2;            // d1 = floor(log_2(n)) - 1
+	//If the user did not give an input for the dimension of the hypercube then initialise it to floor(log_2(n)) -1
+	if (d1 < 0){
+		d1 = get_lg(n) - 2;            // d1 = floor(log_2(n)) - 1
+	}
+    
 	// create entire structure for hypercube algorithm
 	hypercube cube;
 
