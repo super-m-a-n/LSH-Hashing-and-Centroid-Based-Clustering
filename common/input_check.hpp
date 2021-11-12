@@ -4,8 +4,14 @@
 #include <iostream>
 #include <string>
 
-// checks for correct input args from terminal and initializes program parameters if so (for lsh)
+// checks for correct input args from terminal and initializes program parameters if so
+// This is for the LSH executable
 bool check_init_args(int argc, const char ** argv, std::string & input_file, std::string & query_file, int & k, int & L, std::string & output_file, int & N, int & R);
+
+// checks for correct input args from terminal and initializes program parameters if so
+// This is for the cube executable
+bool check_init_args(int argc, const char ** argv, std::string & input_file, std::string & query_file, int & d1, int & M, int & probes, std::string & output_file, int & N, int & R);
+
 
 // checks for correct input args from terminal and initializes program parameters if so (for clustering)
 bool check_init_args(int argc, const char ** argv, std::string & input_file, std::string & config_file, std::string & output_file, bool & complete, std::string & method);

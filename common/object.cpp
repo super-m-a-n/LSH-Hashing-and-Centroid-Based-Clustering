@@ -96,16 +96,36 @@ float Object::get_ith(int i) const
 
 void Object::print() const
 {
-	std::cout << "Object " << this->identifier << "--> (";
-	for (int i = 0; i < d; ++i)
+	std::cout << "Object " << this->identifier << "--> ";
+	
+	this->print_coordinates();
+	
+}
+
+void Object::print_coordinates() const{
+	std::cout << "(";
+	for (int i = 0; i < (d-1); ++i)
 		std::cout << this->vector[i] << ",";
-	std::cout << ")\n";
+	std::cout << this->vector[d-1];
+	std::cout << ")";
 }
 
 void Object::print(std::ofstream & file) const
 {
-	file << "( ";
-	for (int i = 0; i < d-1; ++i)
-		file << this->vector[i] << ", ";
-	file << this->vector[d-1] << " )";
+	file << "Object " << this->identifier << "--> ";
+	
+	this->print_coordinates(file);
+}
+
+void Object::print_coordinates(std::ofstream & file) const{
+	file << "(";
+	for (int i = 0; i < (d-1); ++i)
+		file << this->vector[i] << ",";
+	file << this->vector[d-1];
+	file << ")";
+}
+
+double euclidean(const Object & p, const Object & q)
+{
+	return p.euclidean_distance(q);
 }

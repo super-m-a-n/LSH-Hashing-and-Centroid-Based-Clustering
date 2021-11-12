@@ -39,11 +39,10 @@ public:
 	bool update(double (*metric)(const Object &, const Object &));
 	
 	// finds silhouette for each cluster, and for clustering in total
-	//std::vector <double> silhouette() const;
+	std::vector <double> silhouette(double (*metric)(const Object &, const Object &)) const;
 	
 	
 };
 
 int binary_search(const std::vector <float> & P, float x, int lower_index, int upper_index);
-double euclidean(const Object & p, const Object & q);
 #endif

@@ -111,8 +111,18 @@ bool lsh_struct::execute(const Dataset & dataset, const Dataset & query_dataset,
 	    file << "tLSH : " << tLSH.count() << "ms\n";
 	    file << "tTrue : " << tTrue.count() << "ms\n\n";
 
+		file << "R-near neighbors: (R = " << R << ")" << '\n';
+
 		// run approximate range search and write results into file
-		this->range_search(query_dataset.get_ith_object(i), file, R, metric);
+		std::set <std::pair <double, const Object*> > R_set = this->range_search(query_dataset.get_ith_object(i), R, metric);
+		std::set <std::pair <double, const Object*> > ::iterator it = R_set.begin();
+		while (it != R_set.end()){
+			// object is within range, so ass it to the list
+				file << "Point-Object " << (std::get<1>(*it))->get_name() << '\n';
+				++it;
+		}
+		R_set.clear();
+		file << "\n\n";
 	}
 	//std::cout << (double) bf / (double) lsh << std::endl;
 	return true;
@@ -220,12 +230,13 @@ std::vector <std::pair <double, const Object*> > lsh_struct::exact_nearest_neigh
 }
 
 
-void lsh_struct::range_search(const Object & query_object, std::ofstream & file, const int & R, double (*metric)(const Object &, const Object &))
+std::set <std::pair <double, const Object*> > lsh_struct::range_search(const Object & query_object, const int & R, double (*metric)(const Object &, const Object &), const int R2)
 {
-	file << "R-near neighbors: (R = " << R << ")" << '\n';
 
-	// initialize an empty set of strings-object names, that will serve as a visited set, so that we check each object at most once
-	std::set <std::string> visited_set;
+	std::set<std::string> visited_set;
+
+	//Save all object-points who are within radius R of the query_object
+	std::set <std::pair <double, const Object*> > R_set;
 
 	for (int i = 0; i < L; ++i)
 	{
@@ -244,20 +255,17 @@ void lsh_struct::range_search(const Object & query_object, std::ofstream & file,
 			{
 				// add object's name (unique identifier) into visited set
 				visited_set.insert(object->get_name());
+
+				double dist = (*metric)(query_object, *object);
 				//if it is also within range
-				if ( (*metric)(query_object, *object) < R )
+				if (R2 <= dist && dist < R )
 				{
-					// object is within range, so write it into file
-					file << "Point-Object " << object->get_name() << '\n';
+					R_set.insert(std::make_pair(dist, object));
 				}
 			}
 		}
 	}
 
-	file << "\n\n";
+	return R_set;
 }
 
-double euclidean(const Object & p, const Object & q)
-{
-	return p.euclidean_distance(q);
-}

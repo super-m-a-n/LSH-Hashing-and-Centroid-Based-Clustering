@@ -4,6 +4,8 @@
 #include <cstring>
 #include <cstdlib>
 #include "input_check.hpp"
+#include "params.hpp"
+#include "assist_functions.hpp"
 
 bool check_init_args(int argc, const char ** argv, std::string & input_file, std::string & query_file, int & k, int & L, std::string & output_file, int & N, int & R)
 {
@@ -39,7 +41,9 @@ bool check_init_args(int argc, const char ** argv, std::string & input_file, std
 		{
 			if (!is_integer(argv[i]) || !atoi(argv[i]))
 				return false;
+
 			k = atoi(argv[i]);
+
 		}
 		else if (!strcmp(argv[i-1], "-L"))
 		{
@@ -65,6 +69,78 @@ bool check_init_args(int argc, const char ** argv, std::string & input_file, std
 		i+=2;
 	}
 
+	return true;
+}
+
+
+//Check arguments for hypercube
+bool check_init_args(int argc, const char ** argv, std::string & input_file, std::string & query_file, int & d1, int & M, int & probes, std::string & output_file, int & N, int & R){
+	// set default values for the parameters, in case no specific value was given through terminal (all cmd parameters are optional)
+	input_file = "";
+	query_file = "";
+	output_file = "";
+	d1 = 14;
+	M = 10;
+	probes = 2;
+	N = 1;
+	R = 10000;
+
+	// cmd input should have an odd number of args (an even number due to ("-x", value) pairs , plus the argv[0])
+	if (argc % 2 == 0)
+		return false;
+	int i = 2;
+	// cmd input should have "-x" at odd positions (x is in {i,q,o,k,L,N,R}) and actual parameter values at even positions
+	while (i < argc)
+	{
+		if (!strcmp(argv[i-1], "-i"))
+		{
+			input_file = argv[i];
+		}
+		else if (!strcmp(argv[i-1], "-q"))
+		{
+			query_file = argv[i];
+		}
+		else if (!strcmp(argv[i-1], "-o"))
+		{
+			output_file = argv[i];
+		}
+		else if (!strcmp(argv[i-1], "-k"))
+		{
+			if (!is_integer(argv[i]) || !atoi(argv[i]))
+				return false;
+
+			d1 = atoi(argv[i]);
+
+		}
+		else if (!strcmp(argv[i-1], "-probes"))
+		{
+			if (!is_integer(argv[i]) || !atoi(argv[i]))
+				return false;
+			probes = atoi(argv[i]);
+		}
+		else if (!strcmp(argv[i-1], "-M"))
+		{
+			if (!is_integer(argv[i]) || !atoi(argv[i]))
+				return false;
+			M = atoi(argv[i]);
+		}
+		else if (!strcmp(argv[i-1], "-N"))
+		{
+			if (!is_integer(argv[i]) || !atoi(argv[i]))
+				return false;
+			N = atoi(argv[i]);
+		}
+		else if (!strcmp(argv[i-1], "-R"))
+		{
+			if (!is_integer(argv[i]) || !atoi(argv[i]))
+				return false;
+			R = atoi(argv[i]);
+		}
+		else
+			return false;
+
+		i+=2;
+	}
 	return true;
 }
 
@@ -128,6 +204,7 @@ bool check_init_args(int argc, const char ** argv, std::string & input_file, std
 	}
 	else
 	{
+		std::cout << "Error input 3" << std::endl;
 		std::cerr << "\nError: one or more wrong input parameters" << std::endl << "Use : -i -c -o -complete <optional> -m\n\n";
 		return false;
 	}
@@ -174,7 +251,7 @@ bool read_config_file(std::string & config_file, int & K, int & L, int & k, int 
 	    	if (line[strlen(line)-1] == '\r')	// remove potential \r character from line read from file
 	    		line[strlen(line)-1] = '\0';
 
-	    	char * str = strtok(line, " ");
+	    	char * str = strtok(line, " \n\r");
 	    	std::string desc;	// description of line
 	    	int value;
 		    int i = 0;
@@ -205,11 +282,12 @@ bool read_config_file(std::string & config_file, int & K, int & L, int & k, int 
 		      	}
 
 		      	i++;
-		        str = strtok(NULL, " ");
+		        str = strtok(NULL, " \n\r");
 		    }
 
 		    if (i != 2)
 		    {
+				std::cout << "Error 2: " << i << std::endl;
 		    	std::cerr << "Error: invalid config file" << std::endl << "Each line of file should be of the form : description: <int>\n\n";
 		    	free(line);
 		    	fclose(file_ptr);
@@ -244,12 +322,16 @@ bool read_config_file(std::string & config_file, int & K, int & L, int & k, int 
 	// close file
 	fclose(file_ptr);
 
+
+	std::cout << "After configuration " << std::endl;
+
 	return true;
 }
 
 bool is_integer(const char * string)
 {
-	for (unsigned int i = 0; i < strlen(string); i++)
+	uint k = strlen(string);
+	for (uint i = 0; i < k ; i++)
 	{
 		if (string[i] < '0' || string[i] > '9')
 			return false;
@@ -257,6 +339,9 @@ bool is_integer(const char * string)
 
 	return true;
 }
+
+//./cube –i <input file> –q <query file> –k <int> -M <int> -probes <int> -ο
+// <output file> -Ν <number of nearest> -R <radius>
 
 bool read_input_file(std::string & input_file, int & n, int & d)
 {

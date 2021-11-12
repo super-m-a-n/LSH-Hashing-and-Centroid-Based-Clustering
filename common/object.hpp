@@ -39,6 +39,12 @@ public:
 	void print() const;
 	// write object to file
 	void print(std::ofstream & file) const;
+
+	//Same as with the above prints but now print only the coordinates of the object
+	void print_coordinates() const;
+	void print_coordinates(std::ofstream & file) const;
 };
+
+double euclidean(const Object & p, const Object & q);
 
 #endif
