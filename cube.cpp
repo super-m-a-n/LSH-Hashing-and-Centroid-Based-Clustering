@@ -11,7 +11,7 @@
 #include "assist_functions.hpp"
 
 // global program parameters
-int k, L, N, R, d = 0, d1, w, n = 0, probes, M;
+int d1, N, R, d = 0, w, n = 0, probes, M;
 
 //./cube –i <input file> –q <query file> –k <int> -M <int> -probes <int> -ο
 // <output file> -Ν <number of nearest> -R <radius>
@@ -24,7 +24,7 @@ int main(int argc, char const *argv[])
 	srand(time(NULL));
 
 	// check for input args and initialize them
-	if (!check_init_args(Hypercube, argc, argv, input_file, query_file, k, M, probes, L, output_file, N, R))
+	if (!check_init_args(argc, argv, input_file, query_file, d1, M, probes, output_file, N, R))
 	{
 		std::cerr << "\nWrong command line input. Use : ./cube –i <input file> –q <query file> –k <int> -M <int> -probes <int>\
                         -ο <output file> -Ν <number of nearest> -R <radius>\n";
@@ -51,16 +51,11 @@ int main(int argc, char const *argv[])
 
 	//dataset.print();
 	
-	w = 747;		// experimental value (testing required)
+	w = 40;		// experimental value (testing required)
 
-	//If the user did not give an input for the dimension of the hypercube then initialise it to floor(log_2(n)) -1
-	if (d1 < 0){
-		d1 = get_lg(n) - 2;            // d1 = floor(log_2(n)) - 1
-	}
     
 	// create entire structure for hypercube algorithm
 	hypercube cube;
-
 	// import dataset into lsh struct
 	cube.import_data(dataset);
 

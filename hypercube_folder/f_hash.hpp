@@ -22,7 +22,7 @@ public:
 	// print method for debugging
 	//void print() const;
 
-    f_hash::~f_hash();
+    ~f_hash();
 };
 
 #endif
