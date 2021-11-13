@@ -95,18 +95,30 @@ bool Cluster_info::execute(const Dataset & dataset, const std::string & output_f
 	}
 
 	// write times of execution in file
-	file << "clustering_time : " <<  time.count() << "s\n";
+	file << "clustering_time : " <<  time.count() << "s\n\n";
 
 	#if 1
 	std::cout << "Calculating Silhouette ...\n";
+	
+	//start timer for silhouette
+	auto s_start = std::chrono::high_resolution_clock::now();
+	
 	std::vector<double> silhouette = this->silhouette(metric);
+	
+	// end timer for silhouette
+	auto s_end = std::chrono::high_resolution_clock::now();
+	
+	// get execution for silhouette in seconds 
+	std::chrono::duration <double> s_time = s_end - s_start;
 
 	file << "Silhouette: [";
 	for (int i = 0 ; i < K ; i++){
 		file << silhouette[i] << ", "; 
 	}
-	file << silhouette[K] << "]\n\n";
+	file << silhouette[K] << "]\n";
+	file << "silhouette_time : " <<  s_time.count() << "s\n\n";
 	#endif
+
 	// if complete option was given, be more verbose
 	if (complete == true)
 	{
@@ -522,7 +534,7 @@ void Cluster_info::cube_range_search_clustering(const Dataset & dataset, double 
 
 bool Cluster_info::update(double (*metric)(const Object &, const Object &))
 {
-	double e = 0.01;
+	double e = 1;
 	double avg_deviation = 0.0;
 
 	// for each cluster
