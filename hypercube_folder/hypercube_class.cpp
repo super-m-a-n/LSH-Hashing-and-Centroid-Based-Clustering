@@ -41,8 +41,13 @@ bool hypercube::execute(const Dataset & dataset, Dataset & query_dataset, const 
 
 	int num_of_Objects = query_dataset.get_num_of_Objects();
 	
-	//long unsigned int lsh = 0;
-	//long unsigned int bf = 0;
+	// counters for metrics
+	double sum_dist_cube = 0;
+	double sum_dist_true = 0;
+	double avg_AF = 0;
+	double avg_TF = 0;
+	double max_AF = 0;
+	int not_found = 0;
 
 	for (int i = 0; i < num_of_Objects; i++)		// run for each of the query Objects
 	{
@@ -67,15 +72,22 @@ bool hypercube::execute(const Dataset & dataset, Dataset & query_dataset, const 
 
 		for (int index = 0; index < N; ++index)	
 		{
+			double dist_cube = 0, dist_true = 0, AF = 0;
+			bool found = false;
+
 			if ((int) appr_nearest.size() >= index + 1)	// neighbors found may be less than N
 			{
 				const Object * object = std::get<1>(appr_nearest[index]);			// get object-neighbor found
 				double dist = std::get<0>(appr_nearest[index]);						// get distance from query object
-				//lsh += dist;
+				sum_dist_cube += dist;
+				dist_cube = dist;
+				found = true;
 
 				file << "Nearest neighbor-" << index + 1 << " : Point-Object " << object->get_name() << '\n';	//write to file
 				file << "kNN: distanceHypercube : " << dist << '\n';
 			}
+			else
+				not_found++;
 			//else{
 			//	std::cout << "Appr_nearest.size() = " << appr_nearest.size() <<  " is smaller than N = " << N << std::endl;
 			//s}
@@ -83,8 +95,18 @@ bool hypercube::execute(const Dataset & dataset, Dataset & query_dataset, const 
 			if ((int) exact_nearest.size() >= index + 1)	// neighbors found may be less than N
 			{
 				double dist = std::get<0>(exact_nearest[index]);		// get distance from query object
-				//bf += dist;
+				sum_dist_true += dist;
+				dist_true = dist;
+
 				file << "kNN: distanceTrue : " << dist << "\n\n";			// write to file
+			}
+
+			if (found)
+			{
+				AF = dist_cube/dist_true;
+				if (AF > max_AF)
+					max_AF = AF;
+				avg_AF += AF;
 			}
 		}
 
@@ -96,32 +118,34 @@ bool hypercube::execute(const Dataset & dataset, Dataset & query_dataset, const 
 	    file << "tHypercube : " << tCube.count() << "ms\n";
 	    file << "tTrue : " << tTrue.count() << "ms\n\n";
 		
+		avg_TF += tCube.count() / tTrue.count();
+
 		file << "tHypercube / tTrue: " << (double) tCube.count() / (double) tTrue.count() << std::endl;
 
 		file << "R-near neighbors: (R = " << R << ")" << '\n';
 
 		// run approximate range search and write results into file
-		std::set <std::pair <double, const Object*> > R_set = this->range_search(query_dataset.get_ith_object(i), R, metric);
+		std::list <std::pair <double, const Object*> > R_list = this->range_search(query_dataset.get_ith_object(i), R, metric);
 		
-		for (auto item: R_set){
+		for (auto item: R_list){
 			// object is within range, so ass it to the list
 				file << "Point-Object " << (std::get<1>(item))->get_name() << '\n';
 				;
 		}
-		R_set.clear();
+		R_list.clear();
 		file << "\n\n";
 	}
+
+	//print metrics
+	std::cout << "\n\nSum dist true / Sum dist cube = " << sum_dist_true / sum_dist_cube << std::endl;
+	std::cout << "Max AF = " << max_AF << std::endl;
+	std::cout << "Average AF = " << avg_AF / (N * num_of_Objects - not_found) << std::endl;
+	std::cout << "Average Time Fraction (Cube/True) = " << avg_TF/num_of_Objects << std::endl;
+	std::cout << "Not found = " << not_found << std::endl << std::endl;
 	
 	return true;
 }
 
-//Iterate through all vertices with hamming distance ham_dist from init_vertex and visit the objects in the nodes
-//init_vertex: The vertex of the query object
-//ham_dist: the hamming distance from the int_vertex
-//M_rem: how many objects remaining are allowed to be checked
-//probes_rem: How many vertices remaining are allowed to be checked
-//curr_bit: The current bit of the curr_vertex which is to be decided whether it will be change (thus increasing the hamming distance by 1)
-//ham_rem: how many bits still have to be changed
 
 //The function recursively iterates through all vertices with increasing hamming distance until all are checked or M_rem or probes_rem becomes 0
 
@@ -172,11 +196,11 @@ void hypercube::vertex_visiting_third_stage(search_type Type, const int R, int c
 			
 			push_at_most_N(obj_p, N, dist, (std::priority_queue <std::pair <double, const Object*> >* ) max_heap);
 		}
-		// If the point belongs to the ring [R2, R) then add it to the set
+		// If the point belongs to the ring [R2, R) then add it to the list
 		else if (R2 <= dist && dist < R){
 
-				std::set <std::pair <double, const Object*> >* casted_p = (std::set <std::pair <double, const Object*> >* ) max_heap;
-				casted_p->insert(std::make_pair(dist, obj_p));
+				std::list <std::pair <double, const Object*> >* casted_p = (std::list <std::pair <double, const Object*> >* ) max_heap;
+				casted_p->push_back(std::make_pair(dist, obj_p));
 		}
 		M_rem -= 1;
 		if (M_rem == 0) return;
@@ -225,7 +249,7 @@ std::vector <std::pair <double, const Object*> > hypercube::appr_nearest_neighbo
 }
 
 
-std::set <std::pair <double, const Object*> > hypercube::range_search(const Object & query_object, const int & R, double (*metric)(const Object &, const Object &),  const int R2)
+std::list <std::pair <double, const Object*> > hypercube::range_search(const Object & query_object, const int & R, double (*metric)(const Object &, const Object &),  const int R2)
 {
 
 	int query_index = 0;
@@ -234,11 +258,11 @@ std::set <std::pair <double, const Object*> > hypercube::range_search(const Obje
             query_index = (query_index << 1) + this->get_0_or_1(j, query_object);
     }
 
-	std::set <std::pair <double, const Object*> > R_set;
+	std::list <std::pair <double, const Object*> > R_list;
 
-	this->vertex_visiting_first_stage(RANGE_SEARCH, R, query_index, 0, M, probes, 1 << (d1-1), (void*) & R_set, query_object, metric,0, R2);
+	this->vertex_visiting_first_stage(RANGE_SEARCH, R, query_index, 0, M, probes, 1 << (d1-1), (void*) & R_list, query_object, metric,0, R2);
 
-	return R_set;
+	return R_list;
 }
 
 std::vector <std::pair <double, const Object*> > hypercube::exact_nearest_neighbors(const Dataset & dataset, const Object & query_object, const int & N, double (*metric)(const Object &, const Object &)){
