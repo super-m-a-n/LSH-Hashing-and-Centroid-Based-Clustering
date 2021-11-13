@@ -39,7 +39,7 @@ public:
 	//There is another parameter R2. Given R and R2, this function actually only stores in the set points which belong to the ring [R2, R) with center the query_object
 	// Here by ring [r, R) with center C is the set of points with r <= dist < R where dist is the distance of the point from the center
 	// By default R2 is 0 so the ring [0, R) is acually the ball with radius R 
-	std::set <std::pair <double, const Object*> > range_search(const Object & query_object, const int & R, double (*metric)(const Object &, const Object &), const int R2 = 0);
+	std::list <std::pair <double, const Object*> > range_search(const Object & query_object, const int & R, double (*metric)(const Object &, const Object &), const int R2 = 0);
 	
 };
 
