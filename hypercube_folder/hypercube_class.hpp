@@ -59,7 +59,7 @@ public:
 	// run approximate range search using given metric function and save results in a set (with their distances from the query object)
     // Ignore objects whose ids are in the visited set
     // By default, the visited set will be empty which means all the objects found will be returned
-	std::set <std::pair <double, const Object*> > range_search(const Object & query_object, const int & R, double (*metric)(const Object &, const Object &), const int R2 = 0);
+	std::list <std::pair <double, const Object*> > range_search(const Object & query_object, const int & R, double (*metric)(const Object &, const Object &), const int R2 = 0);
 
     std::vector <std::pair <double, const Object*> > exact_nearest_neighbors(const Dataset & dataset, const Object & query_object, const int & N, double (*metric)(const Object &, const Object &));
 

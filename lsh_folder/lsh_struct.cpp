@@ -140,7 +140,7 @@ bool lsh_struct::execute(const Dataset & dataset, const Dataset & query_dataset,
 		// run approximate range search and write results into file
 		std::list <std::pair <double, const Object*> > R_list = this->range_search(query_dataset.get_ith_object(i), R, metric);
 		std::list <std::pair <double, const Object*> > ::iterator it = R_list.begin();
-		
+
 		while (it != R_list.end()){
 			// object is within range, so ass it to the list
 				file << "Point-Object " << (std::get<1>(*it))->get_name() << '\n';
@@ -268,7 +268,7 @@ std::list <std::pair <double, const Object*> > lsh_struct::range_search(const Ob
 	std::set<std::string> visited_set;
 
 	//Save all object-points who are within radius R of the query_object
-	std::list <std::pair <double, const Object*> > R_list;
+	std::list<std::pair <double, const Object*> > R_list;
 
 	for (int i = 0; i < L; ++i)
 	{
@@ -300,4 +300,3 @@ std::list <std::pair <double, const Object*> > lsh_struct::range_search(const Ob
 
 	return R_list;
 }
-
