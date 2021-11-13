@@ -42,7 +42,7 @@ clean:
 	rm -rf *.o lsh cube cluster output* $(OBJS_FOLDER)
 
 
-
+###############################################################################################################
 
 cluster_s_c: target3
 	./cluster -i ./data/input_small_id -c ./data/cluster.config -o output_s_cl -complete -m Classic
