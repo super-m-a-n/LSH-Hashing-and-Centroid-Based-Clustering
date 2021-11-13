@@ -58,8 +58,13 @@ bool lsh_struct::execute(const Dataset & dataset, const Dataset & query_dataset,
 
 	int num_of_Objects = query_dataset.get_num_of_Objects();
 	
-	//long unsigned int lsh = 0;
-	//long unsigned int bf = 0;
+	// counters for metrics
+	double sum_dist_lsh = 0;
+	double sum_dist_true = 0;
+	double avg_AF = 0;
+	double avg_TF = 0;
+	double max_AF = 0;
+	int not_found = 0;
 
 	for (int i = 0; i < num_of_Objects; i++)		// run for each of the query Objects
 	{
@@ -85,21 +90,38 @@ bool lsh_struct::execute(const Dataset & dataset, const Dataset & query_dataset,
 
 		for (int index = 0; index < N; ++index)	
 		{
+			double dist_lsh = 0, dist_true = 0, AF = 0;
+			bool found = false;
+
 			if ((int) appr_nearest.size() >= index + 1)	// neighbors found may be less than N
 			{
 				const Object * object = std::get<1>(appr_nearest[index]);			// get object-neighbor found
 				double dist = std::get<0>(appr_nearest[index]);						// get distance from query object
-				//lsh += dist;
+				sum_dist_lsh += dist;
+				dist_lsh = dist;
+				found = true;
 
 				file << "Nearest neighbor-" << index + 1 << " : Point-Object " << object->get_name() << '\n';	//write to file
 				file << "distanceLSH : " << dist << '\n';
 			}
+			else
+				not_found++;
 
 			if ((int) exact_nearest.size() >= index + 1)	// neighbors found may be less than N
 			{
 				double dist = std::get<0>(exact_nearest[index]);		// get distance from query object
-				//bf += dist;
+				sum_dist_true += dist;
+				dist_true = dist;
+
 				file << "distanceTrue : " << dist << "\n\n";			// write to file
+			}
+
+			if (found)
+			{
+				AF = dist_lsh/dist_true;
+				if (AF > max_AF)
+					max_AF = AF;
+				avg_AF += AF;
 			}
 		}
 
@@ -111,11 +133,14 @@ bool lsh_struct::execute(const Dataset & dataset, const Dataset & query_dataset,
 	    file << "tLSH : " << tLSH.count() << "ms\n";
 	    file << "tTrue : " << tTrue.count() << "ms\n\n";
 
+	    avg_TF += tLSH.count() / tTrue.count();
+
 		file << "R-near neighbors: (R = " << R << ")" << '\n';
 
 		// run approximate range search and write results into file
 		std::list <std::pair <double, const Object*> > R_list = this->range_search(query_dataset.get_ith_object(i), R, metric);
 		std::list <std::pair <double, const Object*> > ::iterator it = R_list.begin();
+
 		while (it != R_list.end()){
 			// object is within range, so ass it to the list
 				file << "Point-Object " << (std::get<1>(*it))->get_name() << '\n';
@@ -124,7 +149,14 @@ bool lsh_struct::execute(const Dataset & dataset, const Dataset & query_dataset,
 		R_list.clear();
 		file << "\n\n";
 	}
-	//std::cout << (double) bf / (double) lsh << std::endl;
+
+	//print metrics
+	std::cout << "\n\nSum dist true / Sum dist lsh = " << sum_dist_true / sum_dist_lsh << std::endl;
+	std::cout << "Max AF = " << max_AF << std::endl;
+	std::cout << "Average AF = " << avg_AF / (N * num_of_Objects - not_found) << std::endl;
+	std::cout << "Average Time Fraction (LSH/True) = " << avg_TF/num_of_Objects << std::endl;
+	std::cout << "Not found = " << not_found << std::endl << std::endl;
+
 	return true;
 }
 

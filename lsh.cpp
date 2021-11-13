@@ -38,17 +38,22 @@ int main(int argc, char const *argv[])
 		return EXIT_FAILURE;
 	}
 
+	std::cout << "\nReading Input Dataset   --> ";
 	// create a dataset object that will hold all the input objects-points
 	Dataset dataset(n, input_file);
+	std::cout << "Completed\n";
 
-	
+
 	w = 40;		// experimental value (testing required)
 
 	int numBuckets = floor(n/16);		// experimental value (testing required)
 	// create entire structure for lsh algorithm
 	lsh_struct lsh(numBuckets);
+	
+	std::cout << "Importing Input Dataset --> ";
 	// import dataset into lsh struct
 	lsh.import_data(dataset);
+	std::cout << "Completed\n";
 
 	bool exit_val = false;
 
@@ -69,8 +74,10 @@ int main(int argc, char const *argv[])
 			return EXIT_FAILURE;
 		}
 
+		std::cout << "Creating Query Dataset  --> ";
 		// create a dataset object that will hold all the query objects-points
 		Dataset query_dataset(nq, query_file);
+		std::cout << "Completed\n";
 
 		if (output_file.empty())
 		{
@@ -79,6 +86,7 @@ int main(int argc, char const *argv[])
 			std::cout << std::endl;
 		}
 
+		std::cout << "Executing ...\n";
 		// execute kNN, range search nearest neighbors algorithms using euclidean metric
 		if (!lsh.execute(dataset, query_dataset, output_file, N, R, euclidean))
 		{

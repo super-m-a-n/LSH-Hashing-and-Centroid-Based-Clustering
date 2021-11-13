@@ -1,4 +1,4 @@
-//file:lsh.cpp//
+//file:cube.cpp//
 #include <iostream>
 #include <string>
 #include <random>
@@ -46,18 +46,22 @@ int main(int argc, char const *argv[])
 		exit(EXIT_FAILURE);
 	}
 
+	std::cout << "\nReading Input Dataset   --> ";
 	// create a dataset object that will hold all the input objects-points
 	Dataset dataset(n, input_file);
-
-	//dataset.print();
+	std::cout << "Completed\n";
+	
 	
 	w = 40;		// experimental value (testing required)
 
     
 	// create entire structure for hypercube algorithm
 	hypercube cube;
+
+	std::cout << "Importing Input Dataset --> ";
 	// import dataset into lsh struct
 	cube.import_data(dataset);
+	std::cout << "Completed\n";
 
 	bool exit_val = false;
 
@@ -78,8 +82,10 @@ int main(int argc, char const *argv[])
 			return EXIT_FAILURE;
 		}
 
+		std::cout << "Creating Query Dataset  --> ";
 		// create a dataset object that will hold all the query objects-points
 		Dataset query_dataset(nq, query_file);
+		std::cout << "Completed\n";
 
 		if (output_file.empty())
 		{
@@ -88,6 +94,7 @@ int main(int argc, char const *argv[])
 			std::cout << std::endl;
 		}
 
+		std::cout << "Executing ...\n";
 		// execute kNN, range search nearest neighbors algorithms using euclidean metric
 		if (!cube.execute(dataset, query_dataset, output_file, N, R, euclidean))
 		{

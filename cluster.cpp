@@ -33,10 +33,16 @@ int main(int argc, char const *argv[])
 		return EXIT_FAILURE;
 	}
 
+	std::cout << "\nReading Input Dataset  --> ";
 	// create a dataset object that will hold all the input objects-points
 	Dataset dataset(n, input_file);
+	std::cout << "Completed\n";
+
+	w = 20;
+
 	// create a cluster object that will hold info necessary for clustering
 	Cluster_info cluster_info;
+
 	// executes clustering using given method and metric, and outputs results into output file
 	if (!cluster_info.execute(dataset, output_file, method, complete, euclidean))
 	{

@@ -247,11 +247,12 @@ bool read_config_file(std::string & config_file, int & K, int & L, int & k, int 
 	  	while(getline(&line, &length, file_ptr) != -1)
 	    {
 	    	line_number++;
-	    	line[strlen(line)-1] = '\0';		// remove newline character from line read from file
+	    	if (line[strlen(line)-1] == '\n')
+	    		line[strlen(line)-1] = '\0';		// remove newline character from line read from file
 	    	if (line[strlen(line)-1] == '\r')	// remove potential \r character from line read from file
 	    		line[strlen(line)-1] = '\0';
 
-	    	char * str = strtok(line, " \n\r");
+	    	char * str = strtok(line, " ");
 	    	std::string desc;	// description of line
 	    	int value;
 		    int i = 0;
@@ -282,12 +283,11 @@ bool read_config_file(std::string & config_file, int & K, int & L, int & k, int 
 		      	}
 
 		      	i++;
-		        str = strtok(NULL, " \n\r");
+		        str = strtok(NULL, " ");
 		    }
 
 		    if (i != 2)
 		    {
-				std::cout << "Error 2: " << i << std::endl;
 		    	std::cerr << "Error: invalid config file" << std::endl << "Each line of file should be of the form : description: <int>\n\n";
 		    	free(line);
 		    	fclose(file_ptr);
@@ -323,7 +323,7 @@ bool read_config_file(std::string & config_file, int & K, int & L, int & k, int 
 	fclose(file_ptr);
 
 
-	std::cout << "After configuration " << std::endl;
+	//std::cout << "After configuration " << std::endl;
 
 	return true;
 }

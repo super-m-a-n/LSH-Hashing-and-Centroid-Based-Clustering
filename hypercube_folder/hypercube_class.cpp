@@ -41,8 +41,13 @@ bool hypercube::execute(const Dataset & dataset, Dataset & query_dataset, const 
 
 	int num_of_Objects = query_dataset.get_num_of_Objects();
 	
-	//long unsigned int lsh = 0;
-	//long unsigned int bf = 0;
+	// counters for metrics
+	double sum_dist_cube = 0;
+	double sum_dist_true = 0;
+	double avg_AF = 0;
+	double avg_TF = 0;
+	double max_AF = 0;
+	int not_found = 0;
 
 	for (int i = 0; i < num_of_Objects; i++)		// run for each of the query Objects
 	{
@@ -67,15 +72,22 @@ bool hypercube::execute(const Dataset & dataset, Dataset & query_dataset, const 
 
 		for (int index = 0; index < N; ++index)	
 		{
+			double dist_cube = 0, dist_true = 0, AF = 0;
+			bool found = false;
+
 			if ((int) appr_nearest.size() >= index + 1)	// neighbors found may be less than N
 			{
 				const Object * object = std::get<1>(appr_nearest[index]);			// get object-neighbor found
 				double dist = std::get<0>(appr_nearest[index]);						// get distance from query object
-				//lsh += dist;
+				sum_dist_cube += dist;
+				dist_cube = dist;
+				found = true;
 
 				file << "Nearest neighbor-" << index + 1 << " : Point-Object " << object->get_name() << '\n';	//write to file
 				file << "kNN: distanceHypercube : " << dist << '\n';
 			}
+			else
+				not_found++;
 			//else{
 			//	std::cout << "Appr_nearest.size() = " << appr_nearest.size() <<  " is smaller than N = " << N << std::endl;
 			//s}
@@ -83,8 +95,18 @@ bool hypercube::execute(const Dataset & dataset, Dataset & query_dataset, const 
 			if ((int) exact_nearest.size() >= index + 1)	// neighbors found may be less than N
 			{
 				double dist = std::get<0>(exact_nearest[index]);		// get distance from query object
-				//bf += dist;
+				sum_dist_true += dist;
+				dist_true = dist;
+
 				file << "kNN: distanceTrue : " << dist << "\n\n";			// write to file
+			}
+
+			if (found)
+			{
+				AF = dist_cube/dist_true;
+				if (AF > max_AF)
+					max_AF = AF;
+				avg_AF += AF;
 			}
 		}
 
@@ -96,6 +118,8 @@ bool hypercube::execute(const Dataset & dataset, Dataset & query_dataset, const 
 	    file << "tHypercube : " << tCube.count() << "ms\n";
 	    file << "tTrue : " << tTrue.count() << "ms\n\n";
 		
+		avg_TF += tCube.count() / tTrue.count();
+
 		file << "tHypercube / tTrue: " << (double) tCube.count() / (double) tTrue.count() << std::endl;
 
 		file << "R-near neighbors: (R = " << R << ")" << '\n';
@@ -111,9 +135,17 @@ bool hypercube::execute(const Dataset & dataset, Dataset & query_dataset, const 
 		R_list.clear();
 		file << "\n\n";
 	}
+
+	//print metrics
+	std::cout << "\n\nSum dist true / Sum dist cube = " << sum_dist_true / sum_dist_cube << std::endl;
+	std::cout << "Max AF = " << max_AF << std::endl;
+	std::cout << "Average AF = " << avg_AF / (N * num_of_Objects - not_found) << std::endl;
+	std::cout << "Average Time Fraction (Cube/True) = " << avg_TF/num_of_Objects << std::endl;
+	std::cout << "Not found = " << not_found << std::endl << std::endl;
 	
 	return true;
 }
+
 
 //The function recursively iterates through all vertices with increasing hamming distance until all are checked or M_rem or probes_rem becomes 0
 

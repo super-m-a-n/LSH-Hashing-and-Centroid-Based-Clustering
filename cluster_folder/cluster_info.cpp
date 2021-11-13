@@ -53,13 +53,15 @@ bool Cluster_info::execute(const Dataset & dataset, const std::string & output_f
 	if (!file.is_open())			// check if file was opened properly
 	    return false;				// error occured
 
+	std::cout << "Initializing Centroids --> ";
 	// uses the dataset given, to run K-means++ initialization and find K initial centroids
 	K_means_init(dataset, metric);
+	std::cout << "Completed\n";
 
 	//start timer for clustering
 	auto t_start = std::chrono::high_resolution_clock::now();
 
-	// TODO : time just for clustering or for Kmeans++ initialization???
+	std::cout << "Executing ...\n";
 
 	if (method == "Classic")
 	{
@@ -96,6 +98,7 @@ bool Cluster_info::execute(const Dataset & dataset, const std::string & output_f
 	file << "clustering_time : " <<  time.count() << "s\n";
 
 	#if 1
+	std::cout << "Calculating Silhouette ...\n";
 	std::vector<double> silhouette = this->silhouette(metric);
 
 	file << "Silhouette: [";
