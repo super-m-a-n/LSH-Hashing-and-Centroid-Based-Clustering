@@ -114,14 +114,14 @@ bool lsh_struct::execute(const Dataset & dataset, const Dataset & query_dataset,
 		file << "R-near neighbors: (R = " << R << ")" << '\n';
 
 		// run approximate range search and write results into file
-		std::set <std::pair <double, const Object*> > R_set = this->range_search(query_dataset.get_ith_object(i), R, metric);
-		std::set <std::pair <double, const Object*> > ::iterator it = R_set.begin();
-		while (it != R_set.end()){
+		std::list <std::pair <double, const Object*> > R_list = this->range_search(query_dataset.get_ith_object(i), R, metric);
+		std::list <std::pair <double, const Object*> > ::iterator it = R_list.begin();
+		while (it != R_list.end()){
 			// object is within range, so ass it to the list
 				file << "Point-Object " << (std::get<1>(*it))->get_name() << '\n';
 				++it;
 		}
-		R_set.clear();
+		R_list.clear();
 		file << "\n\n";
 	}
 	//std::cout << (double) bf / (double) lsh << std::endl;
@@ -230,13 +230,13 @@ std::vector <std::pair <double, const Object*> > lsh_struct::exact_nearest_neigh
 }
 
 
-std::set <std::pair <double, const Object*> > lsh_struct::range_search(const Object & query_object, const int & R, double (*metric)(const Object &, const Object &), const int R2)
+std::list <std::pair <double, const Object*> > lsh_struct::range_search(const Object & query_object, const int & R, double (*metric)(const Object &, const Object &), const int R2)
 {
 
 	std::set<std::string> visited_set;
 
 	//Save all object-points who are within radius R of the query_object
-	std::set <std::pair <double, const Object*> > R_set;
+	std::list<std::pair <double, const Object*> > R_list;
 
 	for (int i = 0; i < L; ++i)
 	{
@@ -260,12 +260,11 @@ std::set <std::pair <double, const Object*> > lsh_struct::range_search(const Obj
 				//if it is also within range
 				if (R2 <= dist && dist < R )
 				{
-					R_set.insert(std::make_pair(dist, object));
+					R_list.push_back(std::make_pair(dist, object));
 				}
 			}
 		}
 	}
 
-	return R_set;
+	return R_list;
 }
-
