@@ -10,11 +10,11 @@ PROGRAMS = lsh cube cluster
 
 all: $(PROGRAMS) mv_objs
 
-target1: lsh mv_objs
+target1: lsh
 
-target2: cube mv_objs
+target2: cube
 
-target3: cluster mv_objs
+target3: cluster
 
 mv_objs:
 	mkdir -p $(OBJS_FOLDER)
@@ -63,26 +63,26 @@ cluster_b_cube: target3
 	./cluster -i ./data/input_b_id -c ./data/cluster.config -o output_b_cl -complete -m Hypercube
 
 lsh_s_s: target1
-	./lsh -i ./data/input_small_id -q ./data/query_small_id -o output_s_cl  
+	./lsh -i ./data/input_small_id -q ./data/query_small_id -o output_s_s_lsh
 
 lsh_s_b: target1
-	./lsh -i ./data/input_small_id -q ./data/query_b_id -o output_s_cl   
+	./lsh -i ./data/input_small_id -q ./data/query_b_id -o output_s_b_lsh
 
 lsh_b_s: target1
-	./lsh -i ./data/input_b_id -q ./data/query_small_id -o output_s_cl  
+	./lsh -i ./data/input_b_id -q ./data/query_small_id -o output_b_s_lsh
 
 lsh_b_b: target1
-	./lsh -i ./data/input_b_id -q ./data/query_b_id -o output_s_cl 
+	./lsh -i ./data/input_b_id -q ./data/query_b_id -o output_b_b_lsh
 
 
 cube_s_s: target2
-	./cube -i ./data/input_small_id -q ./data/query_small_id o output_s_cl 
+	./cube -i ./data/input_small_id -q ./data/query_small_id -o output_s_s_cube
 
 cube_s_b: target2
-	./cube -i ./data/input_small_id -q ./data/query_b_id -o output_s_cl 
+	./cube -i ./data/input_small_id -q ./data/query_b_id -o output_s_b_cube
 
 cube_b_s: target2
-	./cube -i ./data/input_b_id -q ./data/query_small_id -o output_s_cl 
+	./cube -i ./data/input_b_id -q ./data/query_small_id -o output_b_s_cube
 
 cube_b_b: target2
-	./cube -i ./data/input_b_id -q ./data/query_b_id -o output_s_cl 
+	./cube -i ./data/input_b_id -q ./data/query_b_id -o output_b_b_cube

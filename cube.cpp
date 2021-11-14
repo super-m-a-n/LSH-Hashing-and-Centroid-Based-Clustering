@@ -52,7 +52,7 @@ int main(int argc, char const *argv[])
 	std::cout << "Completed\n";
 	
 	
-	w = 40;		// experimental value (testing required)
+	w = 50;		// experimental value (testing required)
 
     
 	// create entire structure for hypercube algorithm
